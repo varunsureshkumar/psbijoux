@@ -34,4 +34,5 @@ jobs:
     - name: Check formatting
       run: npm run format:check || true
 
-  # Note: Deployment will be handled through Replit's GitHub integration
+    # Note: Deployment is handled automatically through Replit's GitHub integration
+    # Adding this comment to trigger a new workflow run for verification
