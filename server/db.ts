@@ -10,3 +10,13 @@ if (!process.env.DATABASE_URL) {
 
 const sql = neon(process.env.DATABASE_URL);
 export const db = drizzle(sql, { schema });
+
+// Test the connection
+db.select().from(schema.products).execute()
+  .then(() => {
+    console.log("Database connection established successfully");
+  })
+  .catch((error) => {
+    console.error("Database connection error:", error);
+    throw error;
+  });

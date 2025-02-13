@@ -8,23 +8,23 @@ export function Hero() {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage:
-            'url("https://images.unsplash.com/photo-1601121141461-9d6647bca1ed")', // Updated to jewelry image
+            'url("https://images.unsplash.com/photo-1615655406736-b37c4fabf923?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80")', // Luxury jewelry display image
         }}
       >
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
       <div className="relative container mx-auto px-4 py-32 sm:px-6 lg:flex lg:items-center lg:px-8">
-        <div className="text-center">
+        <div className="text-center max-w-2xl mx-auto">
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
             Timeless Elegance
           </h1>
           <p className="mt-4 text-xl text-white">
-            Discover our collection of fine jewelry
+            Discover our collection of exquisite fine jewelry
           </p>
           <div className="mt-8 flex justify-center gap-x-4">
-            <Button asChild size="lg" variant="default">
-              <Link href="/products">Shop Now</Link>
+            <Button asChild size="lg" className="bg-white text-black hover:bg-gray-100">
+              <Link href="/products">Shop Collection</Link>
             </Button>
           </div>
         </div>
