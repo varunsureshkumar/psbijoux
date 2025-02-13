@@ -31,7 +31,7 @@ export default function Orders() {
   return (
     <div className="container py-12">
       <h1 className="text-3xl font-bold mb-8">Orders</h1>
-      
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -70,14 +70,14 @@ export default function Orders() {
   );
 }
 
-function getStatusVariant(status: string): "default" | "success" | "destructive" | "secondary" {
+function getStatusVariant(status: string): "default" | "destructive" | "secondary" | "outline" {
   switch (status.toLowerCase()) {
     case "pending":
       return "default";
     case "processing":
       return "secondary";
     case "completed":
-      return "success";
+      return "outline";
     case "cancelled":
       return "destructive";
     default:
