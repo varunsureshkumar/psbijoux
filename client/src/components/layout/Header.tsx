@@ -1,15 +1,27 @@
 import { Link } from "wouter";
-import { ShoppingBag, Search, Menu } from "lucide-react";
+import { ShoppingBag, Search, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { categories } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
+import { CartDrawer } from "../cart/CartDrawer";
 
 export function Header() {
+  const { user, logoutMutation } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -57,9 +69,38 @@ export function Header() {
           <Button variant="ghost" size="icon">
             <Search className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon">
-            <ShoppingBag className="h-5 w-5" />
-          </Button>
+
+          {user ? (
+            <>
+              <CartDrawer />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <Link href="/orders">
+                    <DropdownMenuItem className="cursor-pointer">
+                      Orders
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => logoutMutation.mutate()}
+                  >
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <Link href="/auth">
+              <Button variant="ghost">Login</Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>

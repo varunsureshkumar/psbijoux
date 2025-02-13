@@ -1,10 +1,21 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { orders, type InsertOrder, type InsertOrderItem } from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
-  // Existing product routes
+  // Set up authentication routes
+  setupAuth(app);
+
+  // Protected API routes
+  const requireAuth = (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    next();
+  };
+
+  // Product routes (public)
   app.get("/api/products", async (_req, res) => {
     const products = await storage.getProducts();
     res.json(products);
@@ -23,30 +34,39 @@ export function registerRoutes(app: Express): Server {
     res.json(products);
   });
 
-  // New order routes
-  app.post("/api/orders", async (req, res) => {
+  // Order routes (protected)
+  app.post("/api/orders", requireAuth, async (req, res) => {
     try {
-      const order = await storage.createOrder(req.body);
+      const order = await storage.createOrder({
+        ...req.body,
+        userId: req.user!.id,
+      });
       res.status(201).json(order);
     } catch (error) {
       res.status(400).json({ message: "Failed to create order" });
     }
   });
 
-  app.get("/api/orders", async (_req, res) => {
+  app.get("/api/orders", requireAuth, async (req, res) => {
     try {
       const orders = await storage.getOrders();
-      res.json(orders);
+      // Filter orders by user ID
+      const userOrders = orders.filter(order => order.userId === req.user!.id);
+      res.json(userOrders);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch orders" });
     }
   });
 
-  app.get("/api/orders/:id", async (req, res) => {
+  app.get("/api/orders/:id", requireAuth, async (req, res) => {
     try {
       const order = await storage.getOrder(Number(req.params.id));
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
+      }
+      // Ensure user can only access their own orders
+      if (order.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Access denied" });
       }
       res.json(order);
     } catch (error) {
@@ -54,7 +74,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.patch("/api/orders/:id/status", async (req, res) => {
+  app.patch("/api/orders/:id/status", requireAuth, async (req, res) => {
     try {
       const { status } = req.body;
       const order = await storage.updateOrderStatus(Number(req.params.id), status);

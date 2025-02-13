@@ -1,6 +1,14 @@
-import { type Product, type Order, type InsertOrder } from "@shared/schema";
+import { type Product, type Order, type InsertOrder, type User, type InsertUser } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
+import { users, products, orders } from "@shared/schema";
 
 export interface IStorage {
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
+
   // Product methods
   getProducts(): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
@@ -13,94 +21,60 @@ export interface IStorage {
   updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
 }
 
-// Temporary in-memory storage implementation
-export class MemStorage implements IStorage {
-  private products: Product[] = [
-    {
-      id: 1,
-      name: "Diamond Solitaire Ring",
-      description: "Classic 1-carat diamond solitaire in 18k white gold",
-      category: "Rings",
-      price: 4999.99,
-      image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e",
-      images: [
-        "https://images.unsplash.com/photo-1605100804763-247f67b3557e",
-        "https://images.unsplash.com/photo-1605100804763-247f67b3557e"
-      ],
-      stock: 10,
-      createdAt: new Date()
-    },
-    {
-      id: 2,
-      name: "Pearl Necklace",
-      description: "Elegant South Sea pearl strand with 18k gold clasp",
-      category: "Necklaces",
-      price: 2999.99,
-      image: "https://images.unsplash.com/photo-1616019642975-0c9eb6b3c3b7",
-      images: [
-        "https://images.unsplash.com/photo-1616019642975-0c9eb6b3c3b7",
-        "https://images.unsplash.com/photo-1616019642975-0c9eb6b3c3b7"
-      ],
-      stock: 5,
-      createdAt: new Date()
-    },
-    {
-      id: 3,
-      name: "Diamond Tennis Bracelet",
-      description: "Beautiful 3ct diamond tennis bracelet in platinum",
-      category: "Bracelets",
-      price: 7999.99,
-      image: "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1",
-      images: [
-        "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1",
-        "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1"
-      ],
-      stock: 3,
-      createdAt: new Date()
-    }
-  ];
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
 
-  private orders: Order[] = [];
-  private orderIdCounter = 1;
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
 
+  async createUser(userData: Omit<InsertUser, "confirmPassword">): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
+    return user;
+  }
+
+  // Product methods
   async getProducts(): Promise<Product[]> {
-    return this.products;
+    return await db.select().from(products);
   }
 
   async getProduct(id: number): Promise<Product | undefined> {
-    return this.products.find(p => p.id === id);
+    const [product] = await db.select().from(products).where(eq(products.id, id));
+    return product;
   }
 
   async getProductsByCategory(category: string): Promise<Product[]> {
-    return this.products.filter(p => p.category.toLowerCase() === category.toLowerCase());
+    return await db.select().from(products).where(eq(products.category, category));
   }
 
+  // Order methods
   async createOrder(order: InsertOrder): Promise<Order> {
-    const newOrder: Order = {
-      ...order,
-      id: this.orderIdCounter++,
-      createdAt: new Date(),
-    };
-    this.orders.push(newOrder);
+    const [newOrder] = await db.insert(orders).values(order).returning();
     return newOrder;
   }
 
   async getOrders(): Promise<Order[]> {
-    return this.orders;
+    return await db.select().from(orders);
   }
 
   async getOrder(id: number): Promise<Order | undefined> {
-    return this.orders.find(o => o.id === id);
+    const [order] = await db.select().from(orders).where(eq(orders.id, id));
+    return order;
   }
 
   async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
-    const order = await this.getOrder(id);
-    if (order) {
-      order.status = status;
-      return order;
-    }
-    return undefined;
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({ status })
+      .where(eq(orders.id, id))
+      .returning();
+    return updatedOrder;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

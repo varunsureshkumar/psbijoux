@@ -11,6 +11,15 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Update orders relation to include userId
+export const orders = pgTable("orders", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  status: text("status").notNull(),
+  total: real("total").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -23,14 +32,6 @@ export const products = pgTable("products", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const orders = pgTable("orders", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  status: text("status").notNull(),
-  total: real("total").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 export const orderItems = pgTable("order_items", {
   id: serial("id").primaryKey(),
   orderId: integer("order_id").references(() => orders.id).notNull(),
@@ -40,8 +41,8 @@ export const orderItems = pgTable("order_items", {
 });
 
 // Relations
-export const productsRelations = relations(products, ({ many }) => ({
-  orderItems: many(orderItems),
+export const usersRelations = relations(users, ({ many }) => ({
+  orders: many(orders),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -50,6 +51,10 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     references: [users.id],
   }),
   items: many(orderItems),
+}));
+
+export const productsRelations = relations(products, ({ many }) => ({
+  orderItems: many(orderItems),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -67,6 +72,12 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+}).extend({
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 export const insertProductSchema = createInsertSchema(products).omit({

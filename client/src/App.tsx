@@ -4,11 +4,14 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Home from "@/pages/Home";
 import Products from "@/pages/Products";
 import ProductDetail from "@/pages/ProductDetail";
 import Contact from "@/pages/Contact";
 import Orders from "@/pages/Orders";
+import Auth from "@/pages/Auth";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,7 +25,8 @@ function Router() {
           <Route path="/product/:id" component={ProductDetail} />
           <Route path="/category/:category" component={Products} />
           <Route path="/contact" component={Contact} />
-          <Route path="/orders" component={Orders} />
+          <Route path="/auth" component={Auth} />
+          <ProtectedRoute path="/orders" component={Orders} />
           <Route path="/about" component={() => <div className="container py-12"><h1>About Us</h1></div>} />
           <Route path="/shipping" component={() => <div className="container py-12"><h1>Shipping Information</h1></div>} />
           <Route path="/returns" component={() => <div className="container py-12"><h1>Returns Policy</h1></div>} />
@@ -39,8 +43,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
