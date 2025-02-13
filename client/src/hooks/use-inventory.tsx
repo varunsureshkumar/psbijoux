@@ -19,7 +19,7 @@ export function useInventory() {
         path: "/inventory-ws",
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
-        timeout: 10000,
+        timeout: 3000, // Reduced timeout
       });
     }
 
@@ -27,7 +27,6 @@ export function useInventory() {
       console.log("WebSocket connected");
       setIsConnected(true);
       setError(null);
-      // Request initial inventory data after connection
       socket?.emit("inventory:request");
     }
 
@@ -67,17 +66,16 @@ export function useInventory() {
     socket.on("inventory:initial", onInitialInventory);
     socket.on("inventory:updated", onInventoryUpdate);
 
-    // Set a timeout to prevent indefinite loading state
+    // Set initial loading timeout
     const timeoutId = setTimeout(() => {
       if (isLoading) {
         console.log("Inventory loading timeout reached");
         setIsLoading(false);
-        // Instead of showing error immediately, try to reconnect
         if (!isConnected) {
           socket?.connect();
         }
       }
-    }, 5000); // Reduced timeout to 5 seconds for faster fallback
+    }, 2000); // Reduced to 2 seconds for faster feedback
 
     return () => {
       clearTimeout(timeoutId);
@@ -97,16 +95,9 @@ export function useInventory() {
     isLoading,
     error,
     getStockLevel: (productId: number, initialStock?: number) => {
-      // During loading, use initial stock
-      if (isLoading) {
-        return initialStock ?? 0;
-      }
-      // If there's an error but we have initial stock, use that
-      if (error && initialStock !== undefined) {
-        return initialStock;
-      }
-      // Otherwise use WebSocket data if available, falling back to initial stock
-      return inventoryData[productId] ?? initialStock ?? 0;
+      // Always start with initial stock immediately
+      const currentStock = inventoryData[productId] ?? initialStock ?? 0;
+      return currentStock;
     },
   };
 }
