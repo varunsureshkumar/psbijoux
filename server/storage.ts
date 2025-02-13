@@ -1,9 +1,16 @@
-import { type Product, type InsertProduct } from "@shared/schema";
+import { type Product, type Order, type InsertOrder } from "@shared/schema";
 
 export interface IStorage {
+  // Product methods
   getProducts(): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
   getProductsByCategory(category: string): Promise<Product[]>;
+
+  // Order methods
+  createOrder(order: InsertOrder): Promise<Order>;
+  getOrders(): Promise<Order[]>;
+  getOrder(id: number): Promise<Order | undefined>;
+  updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
 }
 
 // Temporary in-memory storage implementation
@@ -53,6 +60,9 @@ export class MemStorage implements IStorage {
     }
   ];
 
+  private orders: Order[] = [];
+  private orderIdCounter = 1;
+
   async getProducts(): Promise<Product[]> {
     return this.products;
   }
@@ -63,6 +73,33 @@ export class MemStorage implements IStorage {
 
   async getProductsByCategory(category: string): Promise<Product[]> {
     return this.products.filter(p => p.category.toLowerCase() === category.toLowerCase());
+  }
+
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const newOrder: Order = {
+      ...order,
+      id: this.orderIdCounter++,
+      createdAt: new Date(),
+    };
+    this.orders.push(newOrder);
+    return newOrder;
+  }
+
+  async getOrders(): Promise<Order[]> {
+    return this.orders;
+  }
+
+  async getOrder(id: number): Promise<Order | undefined> {
+    return this.orders.find(o => o.id === id);
+  }
+
+  async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
+    const order = await this.getOrder(id);
+    if (order) {
+      order.status = status;
+      return order;
+    }
+    return undefined;
   }
 }
 
