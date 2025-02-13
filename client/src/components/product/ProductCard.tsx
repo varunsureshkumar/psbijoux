@@ -1,12 +1,23 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Product } from "@shared/schema";
+import { useInventory } from "@/hooks/use-inventory";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { getStockLevel } = useInventory();
+  const stockLevel = getStockLevel(product.id);
+
+  function getStockBadgeVariant(stock: number) {
+    if (stock === 0) return "destructive";
+    if (stock <= 5) return "warning";
+    return "default";
+  }
+
   return (
     <Link href={`/product/${product.id}`}>
       <a className="group block">
@@ -21,7 +32,12 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col items-start p-4">
-            <h3 className="font-medium">{product.name}</h3>
+            <div className="flex w-full items-center justify-between">
+              <h3 className="font-medium">{product.name}</h3>
+              <Badge variant={getStockBadgeVariant(stockLevel)}>
+                {stockLevel === 0 ? "Out of Stock" : `${stockLevel} in stock`}
+              </Badge>
+            </div>
             <p className="mt-1 text-sm text-muted-foreground">
               ${product.price.toLocaleString()}
             </p>

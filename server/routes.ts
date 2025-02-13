@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
+import { setupInventoryTracking } from "./inventory";
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
@@ -88,5 +89,32 @@ export function registerRoutes(app: Express): Server {
   });
 
   const httpServer = createServer(app);
+
+  // Set up WebSocket server for inventory tracking
+  const io = setupInventoryTracking(httpServer);
+
+  // Add new route for manual inventory updates (admin only)
+  app.patch("/api/products/:id/stock", requireAuth, async (req, res) => {
+    try {
+      const productId = Number(req.params.id);
+      const { stock } = req.body;
+
+      const updatedProduct = await storage.updateProductStock(productId, stock);
+      if (!updatedProduct) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      // Broadcast the update via WebSocket
+      io.emit("inventory:updated", {
+        productId: updatedProduct.id,
+        stock: updatedProduct.stock,
+      });
+
+      res.json(updatedProduct);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update stock" });
+    }
+  });
+
   return httpServer;
 }
