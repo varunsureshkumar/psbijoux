@@ -12,3 +12,8 @@ coverage
 *.log
 tmp/
 temp/
+.git-credentials
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
