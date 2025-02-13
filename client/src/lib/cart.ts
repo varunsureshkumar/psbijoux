@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { CartState, CartItem } from '@/types/product';
+import { useInventory } from '@/hooks/use-inventory';
 
 interface CartStore extends CartState {
-  addItem: (item: CartItem) => void;
+  addItem: (item: CartItem, currentStock: number) => boolean;
   removeItem: (productId: number) => void;
   setIsOpen: (isOpen: boolean) => void;
 }
@@ -10,15 +11,22 @@ interface CartStore extends CartState {
 const useCart = create<CartStore>((set) => ({
   items: [],
   isOpen: false,
-  addItem: (item: CartItem) =>
+  addItem: (item: CartItem, currentStock: number) =>
     set((state) => {
       const existing = state.items.find((i) => i.productId === item.productId);
+      const newQuantity = (existing?.quantity || 0) + item.quantity;
+
+      // Check if adding the item would exceed available stock
+      if (newQuantity > currentStock) {
+        return state; // Return current state without changes
+      }
+
       if (existing) {
         return {
           ...state,
           items: state.items.map((i) =>
             i.productId === item.productId
-              ? { ...i, quantity: i.quantity + item.quantity }
+              ? { ...i, quantity: newQuantity }
               : i
           ),
         };

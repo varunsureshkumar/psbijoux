@@ -9,12 +9,12 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { getStockLevel } = useInventory();
-  const stockLevel = getStockLevel(product.id);
+  const { getStockLevel, isLoading } = useInventory();
+  const stockLevel = getStockLevel(product.id, product.stock);
 
-  function getStockBadgeVariant(stock: number) {
+  function getStockBadgeVariant(stock: number): "default" | "destructive" | "secondary" {
     if (stock === 0) return "destructive";
-    if (stock <= 5) return "warning";
+    if (stock <= 5) return "secondary";
     return "default";
   }
 
@@ -34,9 +34,11 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardFooter className="flex flex-col items-start p-4">
             <div className="flex w-full items-center justify-between">
               <h3 className="font-medium">{product.name}</h3>
-              <Badge variant={getStockBadgeVariant(stockLevel)}>
-                {stockLevel === 0 ? "Out of Stock" : `${stockLevel} in stock`}
-              </Badge>
+              {!isLoading && (
+                <Badge variant={getStockBadgeVariant(stockLevel)}>
+                  {stockLevel === 0 ? "Out of Stock" : `${stockLevel} in stock`}
+                </Badge>
+              )}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               ${product.price.toLocaleString()}

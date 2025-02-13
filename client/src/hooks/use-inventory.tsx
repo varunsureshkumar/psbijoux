@@ -7,12 +7,13 @@ let socket: Socket | null = null;
 export function useInventory() {
   const [inventoryData, setInventoryData] = useState<Record<number, number>>({});
   const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!socket) {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${protocol}//${window.location.host}`;
-      
+
       socket = io(wsUrl, {
         path: "/inventory-ws",
       });
@@ -32,6 +33,7 @@ export function useInventory() {
         inventory[product.id] = product.stock;
       });
       setInventoryData(inventory);
+      setIsLoading(false);
     }
 
     function onInventoryUpdate(update: { productId: number; stock: number }) {
@@ -57,6 +59,10 @@ export function useInventory() {
   return {
     inventoryData,
     isConnected,
-    getStockLevel: (productId: number) => inventoryData[productId] ?? 0,
+    isLoading,
+    getStockLevel: (productId: number, initialStock?: number) => {
+      // Use WebSocket data if available, otherwise fall back to initial stock
+      return inventoryData[productId] ?? initialStock ?? 0;
+    },
   };
 }

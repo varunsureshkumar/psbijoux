@@ -12,11 +12,13 @@ import {
 import { useState } from "react";
 import useCart from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
+import { useInventory } from "@/hooks/use-inventory";
 
 export default function ProductDetail() {
   const [, params] = useRoute("/product/:id");
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
+  const { getStockLevel } = useInventory();
 
   const { data: product, isLoading } = useQuery<Product>({
     queryKey: [`/api/products/${params?.id}`],
@@ -45,12 +47,24 @@ export default function ProductDetail() {
     );
   }
 
+  const currentStock = getStockLevel(product.id, product.stock);
+  const maxQuantity = Math.min(5, currentStock);
+
   const handleAddToCart = () => {
-    addItem({ productId: product.id, quantity });
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
-    });
+    const added = addItem({ productId: product.id, quantity }, currentStock);
+
+    if (added) {
+      toast({
+        title: "Added to cart",
+        description: `${product.name} has been added to your cart.`,
+      });
+    } else {
+      toast({
+        title: "Cannot add to cart",
+        description: `Sorry, there isn't enough stock available.`,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -91,8 +105,9 @@ export default function ProductDetail() {
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
                 className="rounded-md border px-2 py-1"
+                disabled={currentStock === 0}
               >
-                {[1, 2, 3, 4, 5].map((num) => (
+                {Array.from({ length: maxQuantity }, (_, i) => i + 1).map((num) => (
                   <option key={num} value={num}>
                     {num}
                   </option>
@@ -100,8 +115,12 @@ export default function ProductDetail() {
               </select>
             </div>
 
-            <Button onClick={handleAddToCart} className="w-full">
-              Add to Cart
+            <Button 
+              onClick={handleAddToCart} 
+              className="w-full"
+              disabled={currentStock === 0}
+            >
+              {currentStock === 0 ? "Out of Stock" : "Add to Cart"}
             </Button>
           </div>
 
@@ -109,6 +128,7 @@ export default function ProductDetail() {
             <h2 className="font-semibold mb-4">Product Details</h2>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>Category: {product.category}</li>
+              <li>Stock: {currentStock} available</li>
               <li>Free shipping on orders over $1000</li>
               <li>30-day return policy</li>
               <li>Certificate of authenticity included</li>
