@@ -24,34 +24,38 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-16 items-center justify-between px-4">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" className="md:hidden">
+            <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left">
+          <SheetContent side="left" className="w-[80vw] sm:w-[350px]">
             <nav className="flex flex-col gap-4">
               {categories.map((category) => (
                 <Link key={category} href={`/category/${category.toLowerCase()}`}>
-                  <a className="text-lg font-medium">{category}</a>
+                  <a className="text-lg font-medium hover:text-primary transition-colors">
+                    {category}
+                  </a>
                 </Link>
               ))}
             </nav>
           </SheetContent>
         </Sheet>
 
-        <div className="mr-4 hidden md:flex">
+        <div className="flex md:flex-1">
           <Link href="/">
-            <a className="mr-6 flex items-center space-x-2">
-              <span className="font-bold text-xl">PS Bijoux</span>
+            <a className="flex items-center space-x-2">
+              <span className="font-bold text-xl hidden sm:inline">PS Bijoux</span>
+              <span className="font-bold text-xl sm:hidden">PSB</span>
             </a>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+          <nav className="hidden md:ml-6 md:flex md:items-center md:space-x-4 lg:space-x-6">
             {categories.map((category) => (
               <Link key={category} href={`/category/${category.toLowerCase()}`}>
-                <a className="transition-colors hover:text-foreground/80">
+                <a className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
                   {category}
                 </a>
               </Link>
@@ -59,15 +63,16 @@ export function Header() {
           </nav>
         </div>
 
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full md:w-auto md:flex-1 md:max-w-sm">
+        <div className="flex items-center space-x-2">
+          <div className="hidden sm:block w-full md:w-auto md:flex-1">
             <Input
               placeholder="Search products..."
-              className="h-9 md:w-[300px] lg:w-[400px]"
+              className="h-9 md:w-[200px] lg:w-[300px]"
             />
           </div>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="sm:hidden">
             <Search className="h-5 w-5" />
+            <span className="sr-only">Search</span>
           </Button>
 
           {user ? (
@@ -77,9 +82,10 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
                     <User className="h-5 w-5" />
+                    <span className="sr-only">User menu</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-[200px]">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <Link href="/orders">
@@ -98,7 +104,12 @@ export function Header() {
             </>
           ) : (
             <Link href="/auth">
-              <Button variant="ghost">Login</Button>
+              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+                Login
+              </Button>
+              <Button variant="ghost" size="icon" className="sm:hidden">
+                <User className="h-5 w-5" />
+              </Button>
             </Link>
           )}
         </div>
