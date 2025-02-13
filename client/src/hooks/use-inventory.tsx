@@ -77,7 +77,7 @@ export function useInventory() {
           socket?.connect();
         }
       }
-    }, 10000); // Increased timeout to 10 seconds
+    }, 5000); // Reduced timeout to 5 seconds for faster fallback
 
     return () => {
       clearTimeout(timeoutId);

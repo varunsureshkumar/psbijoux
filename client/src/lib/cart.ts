@@ -11,28 +11,36 @@ interface CartStore extends CartState {
 const useCart = create<CartStore>((set) => ({
   items: [],
   isOpen: false,
-  addItem: (item: CartItem, currentStock: number) =>
+  addItem: (item: CartItem, currentStock: number) => {
+    let success = false;
+
     set((state) => {
       const existing = state.items.find((i) => i.productId === item.productId);
-      const newQuantity = (existing?.quantity || 0) + item.quantity;
+      const existingQuantity = existing?.quantity || 0;
+      const newQuantity = item.quantity;
+      const totalQuantity = existingQuantity + newQuantity;
 
       // Check if adding the item would exceed available stock
-      if (newQuantity > currentStock) {
+      if (totalQuantity > currentStock) {
         return state; // Return current state without changes
       }
 
+      success = true; // Mark operation as successful
       if (existing) {
         return {
           ...state,
           items: state.items.map((i) =>
             i.productId === item.productId
-              ? { ...i, quantity: newQuantity }
+              ? { ...i, quantity: totalQuantity }
               : i
           ),
         };
       }
       return { ...state, items: [...state.items, item] };
-    }),
+    });
+
+    return success; // Return whether the operation was successful
+  },
   removeItem: (productId: number) =>
     set((state) => ({
       ...state,

@@ -2,13 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Product } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { useState } from "react";
 import useCart from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
@@ -77,26 +70,13 @@ export default function ProductDetail() {
   return (
     <div className="container py-12">
       <div className="grid gap-8 md:grid-cols-2">
-        <div className="space-y-4">
-          <Carousel className="w-full">
-            <CarouselContent>
-              {product.images.map((image, index) => (
-                <CarouselItem key={index}>
-                  <div className="aspect-square overflow-hidden rounded-lg">
-                    <img
-                      src={image}
-                      alt={`${product.name} - View ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
+        <div>
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-auto rounded-lg"
+          />
         </div>
-
         <div>
           <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
           <p className="text-2xl mb-6">${product.price.toLocaleString()}</p>
