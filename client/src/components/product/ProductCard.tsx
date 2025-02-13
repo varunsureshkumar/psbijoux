@@ -34,11 +34,9 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardFooter className="flex flex-col items-start p-4">
             <div className="flex w-full items-center justify-between">
               <h3 className="font-medium">{product.name}</h3>
-              {!isLoading && (
-                <Badge variant={getStockBadgeVariant(stockLevel)}>
-                  {stockLevel === 0 ? "Out of Stock" : `${stockLevel} in stock`}
-                </Badge>
-              )}
+              <Badge variant={getStockBadgeVariant(stockLevel)}>
+                {stockLevel === 0 ? "Out of Stock" : `${stockLevel} in stock`}
+              </Badge>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               ${product.price.toLocaleString()}

@@ -13,6 +13,7 @@ import { useState } from "react";
 import useCart from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { useInventory } from "@/hooks/use-inventory";
+import { Plus, Minus } from "lucide-react";
 
 export default function ProductDetail() {
   const [, params] = useRoute("/product/:id");
@@ -48,7 +49,13 @@ export default function ProductDetail() {
   }
 
   const currentStock = getStockLevel(product.id, product.stock);
-  const maxQuantity = Math.min(5, currentStock);
+
+  const handleQuantityChange = (change: number) => {
+    const newQuantity = quantity + change;
+    if (newQuantity >= 1 && newQuantity <= currentStock) {
+      setQuantity(newQuantity);
+    }
+  };
 
   const handleAddToCart = () => {
     const added = addItem({ productId: product.id, quantity }, currentStock);
@@ -97,22 +104,26 @@ export default function ProductDetail() {
 
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
-              <label htmlFor="quantity" className="font-medium">
-                Quantity:
-              </label>
-              <select
-                id="quantity"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                className="rounded-md border px-2 py-1"
-                disabled={currentStock === 0}
-              >
-                {Array.from({ length: maxQuantity }, (_, i) => i + 1).map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </select>
+              <label className="font-medium">Quantity:</label>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={quantity <= 1 || currentStock === 0}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="w-8 text-center">{quantity}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleQuantityChange(1)}
+                  disabled={quantity >= currentStock || currentStock === 0}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <Button 
