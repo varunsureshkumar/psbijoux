@@ -3,13 +3,14 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Product } from "@shared/schema";
 import { useInventory } from "@/hooks/use-inventory";
+import { Loader2 } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { getStockLevel, isLoading } = useInventory();
+  const { getStockLevel, isLoading, error } = useInventory();
   const stockLevel = getStockLevel(product.id, product.stock);
 
   function getStockBadgeVariant(stock: number): "default" | "destructive" | "secondary" {
@@ -34,9 +35,15 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardFooter className="flex flex-col items-start p-4">
             <div className="flex w-full items-center justify-between">
               <h3 className="font-medium">{product.name}</h3>
-              <Badge variant={getStockBadgeVariant(stockLevel)}>
-                {stockLevel === 0 ? "Out of Stock" : `${stockLevel} in stock`}
-              </Badge>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : error ? (
+                <Badge variant="destructive">Error</Badge>
+              ) : (
+                <Badge variant={getStockBadgeVariant(stockLevel)}>
+                  {stockLevel === 0 ? "Out of Stock" : `${stockLevel} in stock`}
+                </Badge>
+              )}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               ${product.price.toLocaleString()}
