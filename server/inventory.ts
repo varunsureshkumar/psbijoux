@@ -18,9 +18,15 @@ export function setupInventoryTracking(httpServer: HTTPServer) {
     connectedClients.add(socket.id);
     console.log(`Client connected: ${socket.id}`);
 
-    // Send initial inventory data
-    storage.getProducts().then((products) => {
-      socket.emit("inventory:initial", products);
+    // Send initial inventory data when requested
+    socket.on("inventory:request", async () => {
+      try {
+        const products = await storage.getProducts();
+        socket.emit("inventory:initial", products);
+      } catch (error) {
+        console.error("Error fetching initial inventory:", error);
+        socket.emit("error", "Failed to fetch inventory data");
+      }
     });
 
     // Handle stock updates
@@ -36,7 +42,7 @@ export function setupInventoryTracking(httpServer: HTTPServer) {
         }
       } catch (error) {
         console.error("Error updating inventory:", error);
-        socket.emit("inventory:error", "Failed to update inventory");
+        socket.emit("error", "Failed to update inventory");
       }
     });
 
