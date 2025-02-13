@@ -8,7 +8,7 @@ export function Hero() {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage:
-            'url("https://images.unsplash.com/photo-1615655406736-b37c4fabf923?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80")', // Luxury jewelry display image
+            'url("https://images.unsplash.com/photo-1573408301185-9146fe634ad0?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80")', // Luxury jewelry display with diamonds and rings
         }}
       >
         <div className="absolute inset-0 bg-black/50" />
