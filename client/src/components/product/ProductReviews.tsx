@@ -22,7 +22,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
   const { toast } = useToast();
   const [isWritingReview, setIsWritingReview] = useState(false);
 
-  const { data: reviews } = useQuery<Review[]>({
+  const { data: reviews } = useQuery<(Review & { userName: string })[]>({
     queryKey: [`/api/products/${productId}/reviews`],
   });
 
@@ -162,6 +162,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                   />
                 ))}
               </div>
+              <p className="text-sm font-medium mb-1">{review.userName}</p>
               <p className="text-sm text-muted-foreground mb-2">
                 {new Date(review.createdAt).toLocaleDateString()}
               </p>

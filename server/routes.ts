@@ -4,6 +4,11 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { setupInventoryTracking } from "./inventory";
 import { insertReviewSchema } from "@shared/schema";
+import { eq, desc } from 'drizzle-orm'; // Assuming drizzle-orm is used for database queries
+
+// Assuming db, reviews, and users are defined elsewhere and imported correctly.  Replace with your actual imports.
+// import { db, reviews, users } from './database';
+
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
@@ -34,7 +39,22 @@ export function registerRoutes(app: Express): Server {
   // Reviews routes
   app.get("/api/products/:id/reviews", async (req, res) => {
     try {
-      const reviews = await storage.getProductReviews(Number(req.params.id));
+      // This part requires a database connection and schema definition.  Replace with your actual database interaction.
+      //const reviews = await storage.getProductReviews(Number(req.params.id)); // Original line, replaced below
+      const reviews = await db
+        .select({
+          id: reviews.id,
+          userId: reviews.userId,
+          productId: reviews.productId,
+          rating: reviews.rating,
+          comment: reviews.comment,
+          createdAt: reviews.createdAt,
+          userName: users.name,
+        })
+        .from(reviews)
+        .innerJoin(users, eq(reviews.userId, users.id))
+        .where(eq(reviews.productId, Number(req.params.id)))
+        .orderBy(desc(reviews.createdAt));
       res.json(reviews);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch reviews" });
