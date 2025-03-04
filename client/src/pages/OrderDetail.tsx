@@ -1,13 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { useRoute } from "wouter";
-import { Order, OrderItem } from "@shared/schema";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
-
 interface OrderWithItems extends Order {
-  items: (OrderItem & { productName: string })[];
+  items: {
+    id: number;
+    orderId: number;
+    productId: number;
+    quantity: number;
+    price: number;
+    productName: string;
+  }[];
 }
 
 export default function OrderDetail() {
@@ -55,7 +54,7 @@ export default function OrderDetail() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {order.items.map((item) => (
+                {order.items?.map((item) => (
                   <div
                     key={item.id}
                     className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"

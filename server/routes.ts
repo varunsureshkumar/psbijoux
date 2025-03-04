@@ -115,38 +115,36 @@ export function registerRoutes(app: Express): Server {
 
   app.get("/api/orders/:id", requireAuth, async (req, res) => {
     try {
+      // First check if order exists and belongs to user
       const order = await storage.getOrder(Number(req.params.id));
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
-      // Ensure user can only access their own orders
       if (order.userId !== req.user!.id) {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Get order items with product names
-      const orderWithItems = await db
+      // Get order items with product details
+      const items = await db
         .select({
-          id: orders.id,
-          userId: orders.userId,
-          status: orders.status,
-          total: orders.total,
-          createdAt: orders.createdAt,
-          items: {
-            id: orderItems.id,
-            orderId: orderItems.orderId,
-            productId: orderItems.productId,
-            quantity: orderItems.quantity,
-            price: orderItems.price,
-            productName: products.name,
-          },
+          id: orderItems.id,
+          orderId: orderItems.orderId,
+          productId: orderItems.productId,
+          quantity: orderItems.quantity,
+          price: orderItems.price,
+          productName: products.name,
         })
-        .from(orders)
-        .where(eq(orders.id, Number(req.params.id)))
-        .innerJoin(orderItems, eq(orders.id, orderItems.orderId))
-        .innerJoin(products, eq(orderItems.productId, products.id));
+        .from(orderItems)
+        .innerJoin(products, eq(orderItems.productId, products.id))
+        .where(eq(orderItems.orderId, order.id));
 
-      res.json(orderWithItems[0]);
+      // Combine order with items
+      const orderWithItems = {
+        ...order,
+        items: items
+      };
+
+      res.json(orderWithItems);
     } catch (error) {
       console.error("Error fetching order:", error);
       res.status(500).json({ message: "Failed to fetch order" });
