@@ -7,6 +7,7 @@ import useCart from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { useInventory } from "@/hooks/use-inventory";
 import { Plus, Minus } from "lucide-react";
+import { RecommendationSidebar } from "@/components/product/RecommendationSidebar";
 
 export default function ProductDetail() {
   const [, params] = useRoute("/product/:id");
@@ -18,9 +19,13 @@ export default function ProductDetail() {
     queryKey: [`/api/products/${params?.id}`],
   });
 
+  const { data: allProducts } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
+
   const { addItem } = useCart();
 
-  if (isLoading) {
+  if (isLoading || !allProducts) {
     return (
       <div className="container py-12">
         <div className="animate-pulse">
@@ -69,63 +74,70 @@ export default function ProductDetail() {
 
   return (
     <div className="container py-12">
-      <div className="grid gap-8 md:grid-cols-2">
-        <div>
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-auto rounded-lg"
-          />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-          <p className="text-2xl mb-6">${product.price.toLocaleString()}</p>
-          <p className="text-muted-foreground mb-6">{product.description}</p>
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex-1">
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-auto rounded-lg"
+              />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+              <p className="text-2xl mb-6">${product.price.toLocaleString()}</p>
+              <p className="text-muted-foreground mb-6">{product.description}</p>
 
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <label className="font-medium">Quantity:</label>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1 || currentStock === 0}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <label className="font-medium">Quantity:</label>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleQuantityChange(-1)}
+                      disabled={quantity <= 1 || currentStock === 0}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center">{quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleQuantityChange(1)}
+                      disabled={quantity >= currentStock || currentStock === 0}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleAddToCart} 
+                  className="w-full"
+                  disabled={currentStock === 0}
                 >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="w-8 text-center">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= currentStock || currentStock === 0}
-                >
-                  <Plus className="h-4 w-4" />
+                  {currentStock === 0 ? "Out of Stock" : "Add to Cart"}
                 </Button>
               </div>
+
+              <div className="mt-8 border-t pt-8">
+                <h2 className="font-semibold mb-4">Product Details</h2>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>Category: {product.category}</li>
+                  <li>Stock: {currentStock} available</li>
+                  <li>Free shipping on orders over $1000</li>
+                  <li>30-day return policy</li>
+                  <li>Certificate of authenticity included</li>
+                </ul>
+              </div>
             </div>
-
-            <Button 
-              onClick={handleAddToCart} 
-              className="w-full"
-              disabled={currentStock === 0}
-            >
-              {currentStock === 0 ? "Out of Stock" : "Add to Cart"}
-            </Button>
-          </div>
-
-          <div className="mt-8 border-t pt-8">
-            <h2 className="font-semibold mb-4">Product Details</h2>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Category: {product.category}</li>
-              <li>Stock: {currentStock} available</li>
-              <li>Free shipping on orders over $1000</li>
-              <li>30-day return policy</li>
-              <li>Certificate of authenticity included</li>
-            </ul>
           </div>
         </div>
+
+        {/* Add recommendation sidebar */}
+        <RecommendationSidebar currentProduct={product} allProducts={allProducts} />
       </div>
     </div>
   );
