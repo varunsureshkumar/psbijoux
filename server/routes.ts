@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { setupInventoryTracking } from "./inventory";
+import { insertReviewSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
@@ -28,6 +29,31 @@ export function registerRoutes(app: Express): Server {
       return res.status(404).json({ message: "Product not found" });
     }
     res.json(product);
+  });
+
+  // Reviews routes
+  app.get("/api/products/:id/reviews", async (req, res) => {
+    try {
+      const reviews = await storage.getProductReviews(Number(req.params.id));
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  app.post("/api/products/:id/reviews", requireAuth, async (req, res) => {
+    try {
+      const reviewData = insertReviewSchema.parse({
+        ...req.body,
+        userId: req.user!.id,
+        productId: Number(req.params.id),
+      });
+
+      const review = await storage.createReview(reviewData);
+      res.status(201).json(review);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid review data" });
+    }
   });
 
   app.get("/api/products/category/:category", async (req, res) => {
