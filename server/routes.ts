@@ -94,11 +94,21 @@ export function registerRoutes(app: Express): Server {
 
   app.get("/api/orders", requireAuth, async (req, res) => {
     try {
-      const orders = await storage.getOrders();
-      // Filter orders by user ID
-      const userOrders = orders.filter(order => order.userId === req.user!.id);
+      // Get all orders for the logged-in user with detailed information
+      const userOrders = await db
+        .select({
+          id: orders.id,
+          status: orders.status,
+          total: orders.total,
+          createdAt: orders.createdAt,
+        })
+        .from(orders)
+        .where(eq(orders.userId, req.user!.id))
+        .orderBy(desc(orders.createdAt));
+
       res.json(userOrders);
     } catch (error) {
+      console.error("Error fetching orders:", error);
       res.status(500).json({ message: "Failed to fetch orders" });
     }
   });
