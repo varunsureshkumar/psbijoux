@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupInventoryTracking } from "./inventory";
 import { insertReviewSchema } from "@shared/schema";
 import { db } from "./db";
-import { users, reviews } from "@shared/schema";
+import { users, reviews, orders, orderItems, products } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
@@ -113,8 +113,32 @@ export function registerRoutes(app: Express): Server {
       if (order.userId !== req.user!.id) {
         return res.status(403).json({ message: "Access denied" });
       }
-      res.json(order);
+
+      // Get order items with product names
+      const orderWithItems = await db
+        .select({
+          id: orders.id,
+          userId: orders.userId,
+          status: orders.status,
+          total: orders.total,
+          createdAt: orders.createdAt,
+          items: {
+            id: orderItems.id,
+            orderId: orderItems.orderId,
+            productId: orderItems.productId,
+            quantity: orderItems.quantity,
+            price: orderItems.price,
+            productName: products.name,
+          },
+        })
+        .from(orders)
+        .where(eq(orders.id, Number(req.params.id)))
+        .innerJoin(orderItems, eq(orders.id, orderItems.orderId))
+        .innerJoin(products, eq(orderItems.productId, products.id));
+
+      res.json(orderWithItems[0]);
     } catch (error) {
+      console.error("Error fetching order:", error);
       res.status(500).json({ message: "Failed to fetch order" });
     }
   });
