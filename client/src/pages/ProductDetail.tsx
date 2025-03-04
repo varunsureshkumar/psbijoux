@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useInventory } from "@/hooks/use-inventory";
 import { Plus, Minus } from "lucide-react";
 import { RecommendationSidebar } from "@/components/product/RecommendationSidebar";
+import { ProductReviews } from "@/components/product/ProductReviews";
 
 export default function ProductDetail() {
   const [, params] = useRoute("/product/:id");
@@ -113,8 +114,8 @@ export default function ProductDetail() {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handleAddToCart} 
+                <Button
+                  onClick={handleAddToCart}
                   className="w-full"
                   disabled={currentStock === 0}
                 >
@@ -134,9 +135,9 @@ export default function ProductDetail() {
               </div>
             </div>
           </div>
+          <ProductReviews productId={product.id} />
         </div>
 
-        {/* Add recommendation sidebar */}
         <RecommendationSidebar currentProduct={product} allProducts={allProducts} />
       </div>
     </div>

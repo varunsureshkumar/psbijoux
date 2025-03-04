@@ -1,7 +1,7 @@
-import { type Product, type Order, type InsertOrder, type User, type InsertUser } from "@shared/schema";
+import { type Product, type Order, type InsertOrder, type User, type InsertUser, type Review, type InsertReview } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { users, products, orders } from "@shared/schema";
+import { users, products, orders, reviews } from "@shared/schema";
 
 export interface IStorage {
   // User methods
@@ -20,6 +20,12 @@ export interface IStorage {
   getOrders(): Promise<Order[]>;
   getOrder(id: number): Promise<Order | undefined>;
   updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
+
+  // Review methods
+  createReview(review: InsertReview): Promise<Review>;
+  getProductReviews(productId: number): Promise<Review[]>;
+  getUserReviews(userId: number): Promise<Review[]>;
+  getReview(id: number): Promise<Review | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -84,6 +90,33 @@ export class DatabaseStorage implements IStorage {
       .where(eq(orders.id, id))
       .returning();
     return updatedOrder;
+  }
+
+  // Review methods
+  async createReview(review: InsertReview): Promise<Review> {
+    const [newReview] = await db.insert(reviews).values(review).returning();
+    return newReview;
+  }
+
+  async getProductReviews(productId: number): Promise<Review[]> {
+    return await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.productId, productId))
+      .orderBy(reviews.createdAt);
+  }
+
+  async getUserReviews(userId: number): Promise<Review[]> {
+    return await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.userId, userId))
+      .orderBy(reviews.createdAt);
+  }
+
+  async getReview(id: number): Promise<Review | undefined> {
+    const [review] = await db.select().from(reviews).where(eq(reviews.id, id));
+    return review;
   }
 }
 
